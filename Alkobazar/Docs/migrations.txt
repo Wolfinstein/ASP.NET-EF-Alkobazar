@@ -1,0 +1,5 @@
+﻿ Enable-Migrations -ContextTypeName ApplicationDbContext -MigrationsDirectory Migrations\Identity
+
+ add-migration -ConfigurationTypeName Alkobazar.Migrations.Identity.Configuration "3"
+
+ update-database -ConfigurationTypeName Alkobazar.Migrations.Identity.Configuration
