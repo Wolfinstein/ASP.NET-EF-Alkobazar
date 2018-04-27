@@ -20,7 +20,6 @@ namespace Alkobazar.Models
         [Required(ErrorMessage = "customer_phone must not be empty !")]
         public string Phone { get; set; }
                 
-        [Required(ErrorMessage = "Customer logo must not be empty !")]
         public byte[] Logo { get; set; }
 
         public ICollection<Order> Orders { get; set; }
