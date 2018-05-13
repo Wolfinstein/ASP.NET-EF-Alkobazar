@@ -12,6 +12,7 @@
     {
         public Configuration()
         {
+            //Database.SetInitializer(new DropCreateDatabaseAlways<ApplicationDbContext>());
             AutomaticMigrationsEnabled = false;
             MigrationsDirectory = @"Migrations\Identity";
         }
@@ -44,6 +45,22 @@
                      userManager.AddToRole(userManager.FindByEmail(user.Email).Id, "Admin");
 
              }
+
+            if (userManager.FindByEmail("employee@gmail.com") == null)
+            {
+                var user = new ApplicationUser
+                {
+                    FirstName = "Employee",
+                    LastName = "Employee",
+                    Email = "employee@gmail.com",
+                    UserName = "employee@gmail.com",
+
+                };
+                var result = userManager.Create(user, "123456");
+                if (result.Succeeded)
+                    userManager.AddToRole(userManager.FindByEmail(user.Email).Id, "Employee");
+
+            }
 
         }
     }

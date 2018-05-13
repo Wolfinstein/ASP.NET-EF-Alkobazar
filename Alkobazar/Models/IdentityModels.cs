@@ -4,14 +4,15 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Alkobazar.Models
 {
     public class ApplicationUser : IdentityUser
     {
-
-        public string Gender { get; set; }
+        [Required(ErrorMessage = "FirstName must not be empty !")]
         public string FirstName { get; set; }
+        [Required(ErrorMessage = "LastName must not be empty !")]
         public string LastName { get; set; }
 
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser> manager)
@@ -29,8 +30,6 @@ namespace Alkobazar.Models
         public DbSet<Order_Items> Order_Items { get; set; }
         public DbSet<Product> Product { get; set; }
         
-
-
         public ApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false){}
 
@@ -38,5 +37,6 @@ namespace Alkobazar.Models
         {
             return new ApplicationDbContext();
         }
+        
     }
 }

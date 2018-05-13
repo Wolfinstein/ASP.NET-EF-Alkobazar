@@ -10,14 +10,44 @@ using Alkobazar.Models;
 
 namespace Alkobazar.Controllers
 {
+    [Authorize(Roles = "Admin, Employee")]
     public class ProductsController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: Products
-        public ActionResult Index()
+        public ActionResult Index(string sortOrder, string searchString)
         {
-            return View(db.Product.ToList());
+            ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewBag.PriceSortParm = sortOrder == "price" ? "price_desc" : "price";
+
+
+            var products = from s in db.Product
+                           select s;
+
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                products = products.Where(a => a.Name.Contains(searchString));
+            }
+
+            switch (sortOrder)
+            {
+                case "name_desc":
+                    products = products.OrderByDescending(s => s.Name);
+                    break;
+                case "price_desc":
+                    products = products.OrderByDescending(s => s.Price);
+                    break;
+                case "price":
+                    products = products.OrderBy(s => s.Price);
+                    break;
+                default:
+                    products = products.OrderBy(s => s.Name);
+                    break;
+            }
+                     
+            return View(products.ToList());
         }
 
         // GET: Products/Details/5

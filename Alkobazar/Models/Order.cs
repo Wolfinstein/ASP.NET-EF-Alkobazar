@@ -21,9 +21,17 @@ namespace Alkobazar.Models
         [Required(ErrorMessage = "Order Number must not be empty !")]
         public string Order_Number { get; set; }
 
+        public int CustomerId { get; set; }
+        [ForeignKey("CustomerId")]
         public  Customer Customer { get; set; }
+
+        public string UserId { get; set; }
+        [ForeignKey("UserId")]
         public ApplicationUser User { get; set; }
-        public virtual ICollection<Order_Items> Order_Items { get; set; }
+
+
+
+        public virtual IEnumerable<Order_Items> Order_Items { get; set; }
 
 
     }

@@ -15,6 +15,7 @@ using Alkobazar.Models;
 
 namespace Alkobazar.Controllers
 {
+    [Authorize(Roles = "Admin, Employee")]
     public class CustomersController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
@@ -66,7 +67,7 @@ namespace Alkobazar.Controllers
                 {
                     // Set the default image:
                     Image img = Image.FromFile(
-                        Server.MapPath(Url.Content("~/Content/biedronka.jpg")));
+                        Server.MapPath(Url.Content("~/Content/biedronka.png")));
                     MemoryStream ms = new MemoryStream();
                     img.Save(ms, ImageFormat.Png); // change to other format
                     ms.Seek(0, SeekOrigin.Begin);

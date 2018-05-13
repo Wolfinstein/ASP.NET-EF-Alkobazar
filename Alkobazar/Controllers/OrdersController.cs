@@ -5,19 +5,44 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web;
+using System.Web.Helpers;
 using System.Web.Mvc;
 using Alkobazar.Models;
+using Alkobazar.Models.DTOs;
+using Microsoft.AspNet.Identity;
 
 namespace Alkobazar.Controllers
 {
+    [Authorize(Roles = "Admin, Employee")]
     public class OrdersController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: Orders
-        public ActionResult Index()
+        public ActionResult Index(string sortOrder, string searchString)
         {
-            return View(db.Orders.ToList());
+
+            ViewBag.NumberSortParm = String.IsNullOrEmpty(sortOrder) ? "number_desc" : "";
+
+            var orders = from s in db.Orders
+                           select s;
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                orders = orders.Where(a => a.Order_Number.Contains(searchString));
+            }
+
+            switch (sortOrder)
+            {
+                case "number_desc":
+                    orders = orders.OrderByDescending(s => s.Order_Number);
+                    break;
+                default:
+                    orders = orders.OrderBy(s => s.Order_Number);
+                    break;
+            }
+
+            return View(orders.ToList());
         }
 
         // GET: Orders/Details/5
@@ -27,7 +52,9 @@ namespace Alkobazar.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Order order = db.Orders.Find(id);
+            OrderDTO order = new OrderDTO(db.Orders.Find(id), db.Order_Items.Include(o => o.Order).Where(i => i.Order.Id == id).ToList());
+            System.Diagnostics.Debug.WriteLine("");
+
             if (order == null)
             {
                 return HttpNotFound();
@@ -38,6 +65,8 @@ namespace Alkobazar.Controllers
         // GET: Orders/Create
         public ActionResult Create()
         {
+            ViewBag.CustomerId = new SelectList(db.Customers, "Id", "Name");
+
             return View();
         }
 
@@ -46,10 +75,12 @@ namespace Alkobazar.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Deadline,Order_Number")] Order order)
+        public ActionResult Create([Bind(Include = "Id,Deadline,Order_Number, CustomerId")] Order order)
         {
             if (ModelState.IsValid)
             {
+                order.UserId = User.Identity.GetUserId();
+               
                 order.Create_timestamp = DateTime.Now;
                 db.Orders.Add(order);
                 db.SaveChanges();
@@ -115,6 +146,34 @@ namespace Alkobazar.Controllers
             db.SaveChanges();
             return RedirectToAction("Index");
         }
+        public ActionResult Income()
+        {
+        
+            var myChart = new Chart(width: 1980, height: 1000)
+                  .AddTitle("Monthly Orders in " + DateTime.Now.Year.ToString())
+                  .AddSeries(
+                      name: "Employee",
+                      xValue: new[] {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" },
+                      yValues: new[] {  db.Orders.Where(d => d.Create_timestamp.Month == 1 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 2 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 3 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 4 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 5 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 6 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 7 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 8 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 9 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 10 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 11 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString(),
+                                        db.Orders.Where(d => d.Create_timestamp.Month == 12 && d.Create_timestamp.Year == DateTime.Now.Year).Count().ToString()})
+                  .Write();
+
+            myChart.Save("~/Content/chart", "jpeg");
+            // Return the contents of the Stream to the client
+            return base.File("~/Content/chart", "jpeg");
+
+        }
+
 
         protected override void Dispose(bool disposing)
         {

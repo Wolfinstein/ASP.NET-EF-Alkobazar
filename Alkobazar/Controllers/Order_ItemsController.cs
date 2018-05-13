@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
-using System.Web;
 using System.Web.Mvc;
 using Alkobazar.Models;
+using System.Data.Entity;
 
 namespace Alkobazar.Controllers
 {
+    [Authorize(Roles = "Admin, Employee")]
     public class Order_ItemsController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
@@ -17,7 +14,9 @@ namespace Alkobazar.Controllers
         // GET: Order_Items
         public ActionResult Index()
         {
-            return View(db.Order_Items.ToList());
+            var ordered_items = db.Order_Items.Include(p => p.Product);
+
+            return View(ordered_items.ToList());
         }
 
         // GET: Order_Items/Details/5
@@ -27,7 +26,7 @@ namespace Alkobazar.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Order_Items order_Items = db.Order_Items.Find(id);
+            Order_Items order_Items = db.Order_Items.Include(o => o.Order).Include(p => p.Product).Include(or => or.Order.Customer).Where(i => i.Id == id).First();
             if (order_Items == null)
             {
                 return HttpNotFound();
@@ -49,7 +48,7 @@ namespace Alkobazar.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Order_Quantity")] Order_Items order_Items)
+        public ActionResult Create([Bind(Include = "Id, ProductId, OrderId, Order_Quantity")] Order_Items order_Items)
         {
             if (ModelState.IsValid)
             {
@@ -60,38 +59,7 @@ namespace Alkobazar.Controllers
 
             return View(order_Items);
         }
-
-        // GET: Order_Items/Edit/5
-        public ActionResult Edit(int? id)
-        {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Order_Items order_Items = db.Order_Items.Find(id);
-            if (order_Items == null)
-            {
-                return HttpNotFound();
-            }
-            return View(order_Items);
-        }
-
-        // POST: Order_Items/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,Order_Quantity")] Order_Items order_Items)
-        {
-            if (ModelState.IsValid)
-            {
-                db.Entry(order_Items).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            return View(order_Items);
-        }
-
+      
         // GET: Order_Items/Delete/5
         public ActionResult Delete(int? id)
         {
@@ -99,7 +67,7 @@ namespace Alkobazar.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Order_Items order_Items = db.Order_Items.Find(id);
+            Order_Items order_Items = db.Order_Items.Include(o => o.Order).Include(p => p.Product).Include(or => or.Order.Customer).Where(i => i.Id == id).First();
             if (order_Items == null)
             {
                 return HttpNotFound();

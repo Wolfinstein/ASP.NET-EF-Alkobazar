@@ -28,6 +28,6 @@ namespace Alkobazar.Models
         [Required(ErrorMessage = "quantityInStock must not be empty !")]
         public int QuantityInStock { get; set; }
 
-        public ICollection<Order_Items> Order_Items { get; set; }
+        public virtual IEnumerable<Order_Items> Order_Items { get; set; }
     }
 }
