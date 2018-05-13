@@ -12,10 +12,7 @@ namespace Alkobazar.Controllers
         // GET: Error
         public ViewResult Unauthorized()
         {
-            //Response.StatusCode = 401; 
-            // Do not set this or else you get a redirect loop
             return View();
-            //where View is the friendly .cshtml page
         }
     }
 }

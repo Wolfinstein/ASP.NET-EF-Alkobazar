@@ -52,8 +52,13 @@ namespace Alkobazar.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            OrderDTO order = new OrderDTO(db.Orders.Find(id), db.Order_Items.Include(o => o.Order).Where(i => i.Order.Id == id).ToList());
-            System.Diagnostics.Debug.WriteLine("");
+            OrderDTO order = new OrderDTO(db.Orders.Find(id), db.Order_Items
+                                                                            .Include(o => o.Order)
+                                                                                .Where(i => i.Order.Id == id)
+                                                                                .Include(p => p.Product)
+                                                                                .Include(c => c.Order.Customer)
+                                                                                .Include(u => u.Order.User)
+                                                                                .ToList());
 
             if (order == null)
             {
@@ -86,6 +91,7 @@ namespace Alkobazar.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
+            ViewBag.CustomerId = new SelectList(db.Customers, "Id", "Name");
 
             return View(order);
         }

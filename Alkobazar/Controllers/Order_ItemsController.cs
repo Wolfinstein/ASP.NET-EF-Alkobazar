@@ -14,7 +14,7 @@ namespace Alkobazar.Controllers
         // GET: Order_Items
         public ActionResult Index()
         {
-            var ordered_items = db.Order_Items.Include(p => p.Product);
+            var ordered_items = db.Order_Items.Include(p => p.Product).Include(o => o.Order).Include(c => c.Order.Customer);
 
             return View(ordered_items.ToList());
         }
@@ -26,7 +26,7 @@ namespace Alkobazar.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Order_Items order_Items = db.Order_Items.Include(o => o.Order).Include(p => p.Product).Include(or => or.Order.Customer).Where(i => i.Id == id).First();
+            Order_Items order_Items = db.Order_Items.Where(i => i.Id == id).Include(o => o.Order).Include(p => p.Product).Include(or => or.Order.Customer).First();
             if (order_Items == null)
             {
                 return HttpNotFound();
@@ -37,7 +37,7 @@ namespace Alkobazar.Controllers
         // GET: Order_Items/Create
         public ActionResult Create()
         {
-            ViewBag.ProductId = new SelectList(db.Product.Where(c => c.QuantityInStock > 0), "Id", "Name");
+            ViewBag.ProductId = new SelectList(db.Product, "Id", "Name");
             ViewBag.OrderId = new SelectList(db.Orders, "Id", "Order_Number");
 
             return View();
@@ -50,13 +50,26 @@ namespace Alkobazar.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "Id, ProductId, OrderId, Order_Quantity")] Order_Items order_Items)
         {
+            Product prod = db.Product.Find(order_Items.ProductId);
+
+            if (prod.QuantityInStock < order_Items.Order_Quantity)
+            {
+                ModelState.AddModelError("", "Our warehouse contains only " +prod.QuantityInStock);
+                ViewBag.ProductId = new SelectList(db.Product, "Id", "Name");
+                ViewBag.OrderId = new SelectList(db.Orders, "Id", "Order_Number");
+                return View(order_Items);
+            }
+
             if (ModelState.IsValid)
             {
                 db.Order_Items.Add(order_Items);
+                prod.QuantityInStock = prod.QuantityInStock - order_Items.Order_Quantity;
+                db.Entry(prod).State = EntityState.Modified;
                 db.SaveChanges();
-                return RedirectToAction("Index");
+                return RedirectToAction("Details", "Orders", new { id = order_Items.OrderId });
             }
-
+            ViewBag.ProductId = new SelectList(db.Product, "Id", "Name");
+            ViewBag.OrderId = new SelectList(db.Orders, "Id", "Order_Number");
             return View(order_Items);
         }
       
@@ -67,7 +80,7 @@ namespace Alkobazar.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Order_Items order_Items = db.Order_Items.Include(o => o.Order).Include(p => p.Product).Include(or => or.Order.Customer).Where(i => i.Id == id).First();
+            Order_Items order_Items = db.Order_Items.Where(i => i.Id == id).Include(o => o.Order).Include(p => p.Product).Include(or => or.Order.Customer).First();
             if (order_Items == null)
             {
                 return HttpNotFound();
@@ -82,8 +95,11 @@ namespace Alkobazar.Controllers
         {
             Order_Items order_Items = db.Order_Items.Find(id);
             db.Order_Items.Remove(order_Items);
+            Product prod = db.Product.Find(order_Items.ProductId);
+            prod.QuantityInStock = prod.QuantityInStock + order_Items.Order_Quantity;
+            db.Entry(prod).State = EntityState.Modified;
             db.SaveChanges();
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", "Orders", new { id = order_Items.OrderId });
         }
 
         protected override void Dispose(bool disposing)

@@ -39,6 +39,9 @@
 
 <div>
     <h4>Order Items</h4>
+    <p>
+        @Html.ActionLink("Add new", "Create", "Order_Items")
+    </p>
     <hr />
 
     <table id="example" class="table table-striped table-bordered" style="width:100%">
@@ -68,14 +71,15 @@
                     @Html.DisplayFor(modelItem => item.Product.Name)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Order.User.Id)
+                    @Html.DisplayFor(modelItem => item.Order.User.FirstName)
+                    @Html.DisplayFor(modelItem => item.Order.User.LastName)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Order.Customer.Name)
                 </td>
                 <td>
-                    @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-                    @Html.ActionLink("Delete", "Delete", new { id = item.Id })
+                    @Html.ActionLink("Remove", "Delete", "Order_Items", new { id = item.Id }, null)
+
                 </td>
             </tr>
         }
