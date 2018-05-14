@@ -35,10 +35,9 @@ namespace Alkobazar.Controllers
         }
 
         // GET: Order_Items/Create
-        public ActionResult Create()
+        public ActionResult Create(int? orderId)
         {
             ViewBag.ProductId = new SelectList(db.Product, "Id", "Name");
-            ViewBag.OrderId = new SelectList(db.Orders, "Id", "Order_Number");
 
             return View();
         }
@@ -48,7 +47,7 @@ namespace Alkobazar.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id, ProductId, OrderId, Order_Quantity")] Order_Items order_Items)
+        public ActionResult Create([Bind(Include = "Id, ProductId, Order_Quantity")] Order_Items order_Items, int? orderId)
         {
             Product prod = db.Product.Find(order_Items.ProductId);
 
@@ -56,12 +55,13 @@ namespace Alkobazar.Controllers
             {
                 ModelState.AddModelError("", "Our warehouse contains only " +prod.QuantityInStock);
                 ViewBag.ProductId = new SelectList(db.Product, "Id", "Name");
-                ViewBag.OrderId = new SelectList(db.Orders, "Id", "Order_Number");
                 return View(order_Items);
             }
 
             if (ModelState.IsValid)
             {
+                order_Items.Order = db.Orders.Find(orderId);
+                order_Items.OrderId = orderId.Value;
                 db.Order_Items.Add(order_Items);
                 prod.QuantityInStock = prod.QuantityInStock - order_Items.Order_Quantity;
                 db.Entry(prod).State = EntityState.Modified;
@@ -69,7 +69,6 @@ namespace Alkobazar.Controllers
                 return RedirectToAction("Details", "Orders", new { id = order_Items.OrderId });
             }
             ViewBag.ProductId = new SelectList(db.Product, "Id", "Name");
-            ViewBag.OrderId = new SelectList(db.Orders, "Id", "Order_Number");
             return View(order_Items);
         }
       

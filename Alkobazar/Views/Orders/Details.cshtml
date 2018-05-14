@@ -40,7 +40,7 @@
 <div>
     <h4>Order Items</h4>
     <p>
-        @Html.ActionLink("Add new", "Create", "Order_Items")
+        @Html.ActionLink("Add new", "Create", "Order_Items", new {orderId = Url.RequestContext.RouteData.Values["id"] }, null)
     </p>
     <hr />
 

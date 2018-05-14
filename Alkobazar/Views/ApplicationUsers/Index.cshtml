@@ -36,11 +36,8 @@
                 <td>
                     @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
                     @Html.ActionLink("Details", "Details", new { id = item.Id }) |
-
-                    @if (!item.Roles.First().RoleId.Equals("2d1f3da8-dd61-4c3e-b871-eb8d3d24a902"))
-                    {
                      @Html.ActionLink("Delete", "Delete", new { id = item.Id })
-                    }
+                    
                 </td>
             </tr>
         }
